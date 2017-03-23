@@ -34,9 +34,9 @@ def parse_info(self, payload):
         return 'message'
 
     def parse_history(self, payload):
-        print 'Previously sent messages: '
-        messageList = payload['content']
-        for elem in messageList:
+        print 'Previously sent message: '
+        PrevMes = payload['content']
+        for elem in PrevMes:
             message=json.loads(elem)
             print message['timestamp'],' - ',message['sender'], ': ', message['content']
         return 'history'
