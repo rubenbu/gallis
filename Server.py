@@ -12,7 +12,7 @@ must be written here (e.g. a dictionary for connected clients)
 messages = []
 usernames = []
 clients = []
-helptext = 'Username must consist of A-Z, a-z and 0-9.\nMessages must consist of unicode characters.\nType names to list all users.\nType logout to logout.'
+helptext = 'Username must consist of A-Z, a-z and 0-9.\n\nType names to list all users.\nType logout to logout.\nType login to login.'
  
 class ClientHandler(SocketServer.BaseRequestHandler):
     """
@@ -29,18 +29,24 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         """
         This method handles the connection between a client and the server.
         """
+        #
         self.ip = self.client_address[0]
         self.port = self.client_address[1]
         self.connection = self.request
         clients.append(self)
  
-        # Loop that listens for messages from the clien
+        # Loop that listens for messages from the client
         while True:
+            #Saving received string as variable
             received_string = self.connection.recv(4096)
- 
+            
+            #Decoding json string
             message = json.loads(received_string)
+            #Save value of key 'request' in variable request
             request = message['request']
  
+ 
+            #Check request for specific key. Do appropriate action.
             if request == 'login':
                 if not self.loggedIn:
                     content = message['content']
@@ -90,7 +96,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
                 if self.loggedIn:
                     self.send_info('Connected users: ' + ', '.join(usernames))
                 else:
-                    self.send_error('You are not logged in.')
+                    self.send_error('Please log in to see who are logged in.')
  
  
             elif request == 'help':
@@ -103,20 +109,20 @@ class ClientHandler(SocketServer.BaseRequestHandler):
  
  
     def send_error(self, message):
-        toEncode = {'timestamp':get_timestamp(),'sender':'server','response':'error','content':message}
-        self.connection.send(json.dumps(toEncode))
+        payload = {'timestamp':get_timestamp(),'sender':'server','response':'error','content':message}
+        self.connection.send(json.dumps(payload))
  
  
     def send_info(self, message):
-        toEncode = {'timestamp':get_timestamp(),'sender':'server','response':'info','content':message}
-        self.connection.send(json.dumps(toEncode))
+        payload = {'timestamp':get_timestamp(),'sender':'server','response':'info','content':message}
+        self.connection.send(json.dumps(payload))
  
  
     def send_history(self):
         #messageLength = len(messages)
         #for i in xrange(0,messageLength, 5):
-        toEncode = {'timestamp':get_timestamp(),'sender':'server','response':'history','content':messages}
-        self.connection.send(json.dumps(toEncode))
+        payload = {'timestamp':get_timestamp(),'sender':'server','response':'history','content':messages}
+        self.connection.send(json.dumps(payload))
  
  
     def valid_username(self, username):
@@ -124,8 +130,8 @@ class ClientHandler(SocketServer.BaseRequestHandler):
  
  
     def create_message(self, content):
-        toEncode = {'timestamp':get_timestamp(),'sender':self.username,'response':'message','content':content}
-        return json.dumps(toEncode)
+        payload = {'timestamp':get_timestamp(),'sender':self.username,'response':'message','content':content}
+        return json.dumps(payload)
  
  
     def finish(self):
@@ -134,7 +140,7 @@ class ClientHandler(SocketServer.BaseRequestHandler):
         if self in clients:
             clients.remove(self)
  
- 
+#Use datetime to give timestamp when chatting
 def get_timestamp():
         return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
  
