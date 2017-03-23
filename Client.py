@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import socket
+import json
 import sys
 import time
-import json
 from MessageReceiver import MessageReceiver
 from MessageParser import MessageParser
  
@@ -33,13 +33,12 @@ class Client:
  
     def run(self):
         # Initiate the connection to the server
-        try:
-            self.connection.connect((self.host, self.server_port))
-             
-        except socket.error as e:
+        try: 
+            self.connection.connect((self.host, self.server_port)) #Connect to server
+            print 'Successfully connected to the server.'             
+        except socket.error as e:  #If connection fails
             print "Failed to connect to server. \nError message:", e
          
-        print 'You have successfully connected to the server.'
          
     def disconnect(self):
         try:
@@ -55,27 +54,27 @@ class Client:
         if self.lastMessageRecieved == 'error':
             self.loggedon = False
  
-    def send_payload(self, data):
+    def send_payload(self, data): #Def the different responses
         if data == 'help':
-            toEncode = {'request':'help', 'content': None}
+            payload = {'request':'help', 'content': None}
         elif data == None:
                 return 0
         elif data == 'names':
-            toEncode = {'request':'names', 'content': None}
+            payload = {'request':'names', 'content': None}
         elif data == 'logout':
-            toEncode = {'request':'logout', 'content': None}
+            payload = {'request':'logout', 'content': None}
             self.loggedon = False
         elif data == 'disconnect':
             return 0
         else:
             if self.loggedon == False:
-                toEncode = {'request':'login', 'content': data}
+                payload = {'request':'login', 'content': data}
                 self.loggedon = True
  
             else:
-                toEncode = {'request':'msg','content': data}
+                payload = {'request':'msg','content': data}
  
-        self.connection.send(json.dumps(toEncode))
+        self.connection.send(json.dumps(payload))
         return 1
          
  
@@ -83,10 +82,8 @@ def clientScript(client):
     acceptedResponses = ['error','info','message','history']
     timeCounter = 0
      
-    while 1:
+    while 1: #Running the chat until the user disconnects
         data = raw_input()
-        sys.stdout.write("\033[F")
-        sys.stdout.write("\033[K")
         if data == 'disconnect':
             client.disconnect()
         client.send_payload(data)
@@ -99,5 +96,5 @@ if __name__ == '__main__':
  
     No alterations are necessary
     """
-    client = Client('129.241.206.199', 9998)
+    client = Client('localhost', 9998)
     clientScript(client)
